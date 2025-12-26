@@ -30,11 +30,43 @@ The .docx format uses "runs" (`<w:r>` elements) as the atomic unit for comments.
 
 ---
 
-## Test 1b: Precise Run Targeting (Pending)
+## Test 1b: Precise Run Targeting
 
-**Status:** 🔄 In Progress
+**Date:** December 26, 2025
+**Status:** ✅ SUCCESS
 
-Improving the script to:
-1. Find the target text
-2. Split runs so target text is isolated
-3. Attach comment only to the target runs
+### What We Tested
+Used `test_docx_precise.py` which:
+1. Analyzes the run structure of the exported .docx
+2. Splits runs at character boundaries to isolate target text
+3. Attaches comment only to the runs containing the target phrase
+
+### Results
+- ✅ Comment anchored to **exactly** the target phrase
+- ✅ "This is a target phrase for our comment test" highlighted (without surrounding text)
+- ✅ Precision confirmed: period after phrase was NOT included (as intended)
+
+### Key Technical Details
+The .docx from Google Docs had the entire paragraph as a single run. The script:
+- Found target at character positions 68-112 within the run
+- Split the run into 3 parts: before (chars 0-67), target (68-112), after (113-191)
+- Attached comment only to the middle run
+
+### Conclusion
+**DOCX round-trip with run splitting is a viable solution for precise comment placement in Google Docs.**
+
+---
+
+## Summary: Viable Approach Found
+
+The DOCX round-trip method works:
+1. Export Google Doc as .docx
+2. Use python-docx to split runs and add comments at precise character positions
+3. Re-upload to Google Drive and convert back to Google Docs
+4. Comments survive with correct anchoring
+
+### Limitations to Explore
+- What happens when document content changes after import?
+- Does this work with multiple comments?
+- Performance with large documents?
+- Handling comments that span paragraphs?
