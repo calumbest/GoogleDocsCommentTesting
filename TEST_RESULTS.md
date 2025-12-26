@@ -110,8 +110,48 @@ When a Google Doc is exported to .docx and re-imported:
 **Impact:** Users cannot:
 - Click on author name to see Google profile
 - @ mention the original commenter in replies
-- See the author's profile picture
 
 **Acceptable for:** Automated/programmatic commenting where account linkage isn't critical.
 
 **Not suitable for:** Workflows where maintaining Google account associations is required.
+
+---
+
+## Test 3: Apps Script / Drive API Approach
+
+**Date:** December 26, 2025
+**Status:** ❌ FAILED (confirms known limitation)
+
+### What We Tested
+1. Attempted to use `DocumentApp.addComment()` - method doesn't exist
+2. Used Drive Advanced Service (`Drive.Comments.create()`) to add comment
+3. Listed existing comments to examine anchor format
+
+### Results
+- ❌ `DocumentApp` has no comment methods
+- ❌ `Drive.Comments.create()` creates **unanchored** comments only
+- ✅ Can read existing comment anchors via `Drive.Comments.list()`
+
+### Key Data: Anchor Format Comparison
+
+**Manual comment (created in Google Docs UI):**
+```json
+{
+  "anchor": "kix.hkaqsaj0l7p3",
+  "quotedFileContent": {"mimeType": "text/html", "value": "ipsum"}
+}
+```
+
+**API comment (created via Drive.Comments.create):**
+```json
+{
+  "anchor": undefined,
+  "quotedFileContent": undefined
+}
+```
+
+### Conclusion
+The `kix.xxxxx` anchor format is proprietary and generated internally by Google Docs. There is no documented way to construct valid anchors via API. This approach **cannot** create anchored comments.
+
+### Implication for Account Linkage
+Even if we could anchor comments via Drive API, the comments would be linked to the service account or authenticated user running the script - not arbitrary users. So this approach wouldn't solve the account linkage limitation of the DOCX method anyway.
