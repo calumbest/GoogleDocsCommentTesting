@@ -1,0 +1,21 @@
+Copy this text into a new Google Doc for Test 1:
+
+---
+
+The Quick Brown Fox
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. The quick brown fox jumps over the lazy dog. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+Second Paragraph Here
+
+Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris. This is a target phrase for our comment test. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore.
+
+Final Thoughts
+
+Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. The end of our test document.
+
+---
+
+After creating the Google Doc:
+1. File > Download > Microsoft Word (.docx)
+2. Save as "test_input.docx" in this project folder
