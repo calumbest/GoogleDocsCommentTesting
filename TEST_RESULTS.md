@@ -65,8 +65,53 @@ The DOCX round-trip method works:
 3. Re-upload to Google Drive and convert back to Google Docs
 4. Comments survive with correct anchoring
 
+### Known Limitations
+- **Google account linkage is lost** - See Test 2 below
+
 ### Limitations to Explore
 - What happens when document content changes after import?
-- Does this work with multiple comments?
 - Performance with large documents?
 - Handling comments that span paragraphs?
+
+---
+
+## Test 2: Comment Preservation Round-Trip
+
+**Date:** December 26, 2025
+**Status:** ✅ SUCCESS (with limitations)
+
+### What We Tested
+1. Created Google Doc with test content
+2. Added a manual comment via Google Docs UI (commented on "ipsum")
+3. Exported as .docx
+4. Used python-docx to add a NEW comment to "quick brown fox"
+5. Re-uploaded to Google Drive and opened as Google Doc
+
+### Results
+- ✅ Original comment preserved with correct anchor position
+- ✅ Original comment text preserved ("Test comment from Calum Best at 3:17pm")
+- ✅ Original author name preserved
+- ✅ Original timestamp preserved
+- ✅ New programmatic comment appeared and anchored correctly
+- ✅ Multiple comments coexist without issues
+
+### Important Limitation: Google Account Linkage Lost
+
+⚠️ **All comments show "From imported document"** - Google account linkage is broken.
+
+When a Google Doc is exported to .docx and re-imported:
+- Author names are preserved as **plain text strings**
+- Profile pictures are lost
+- Comments are no longer linked to Google accounts
+- Comments appear with "From imported document" label
+
+**Why this happens:** The .docx format stores author as a simple string field, not a Google account identifier. There's no OAuth token or account reference that could survive the export/import cycle.
+
+**Impact:** Users cannot:
+- Click on author name to see Google profile
+- @ mention the original commenter in replies
+- See the author's profile picture
+
+**Acceptable for:** Automated/programmatic commenting where account linkage isn't critical.
+
+**Not suitable for:** Workflows where maintaining Google account associations is required.
