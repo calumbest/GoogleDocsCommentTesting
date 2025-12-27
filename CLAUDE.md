@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Google Commenter was an exploration project to find a workable solution for programmatically inserting comments with specific text locations into Google Docs.
+Google Commenter is an exploration project to find a workable solution for programmatically inserting comments with specific text locations into Google Docs.
 
-**Status:** Research complete. See [TEST_RESULTS.md](./TEST_RESULTS.md) for full findings.
+**Status:** Active research. See [TEST_RESULTS.md](./TEST_RESULTS.md) for detailed findings.
 
 ## The Core Problem
 
@@ -17,6 +17,27 @@ Google's `kix.xxxxx` anchor format is proprietary and internally generated. Ther
 
 This limitation has been documented since 2016 (Google Issue #36763384) and remains unresolved.
 
+## Major Discovery: Internal API Format (Test 6)
+
+By reverse-engineering network traffic (HAR analysis), we discovered Google Docs' internal format:
+
+```json
+// The /save endpoint uses CHARACTER INDICES for anchoring:
+{
+  "ty": "as",
+  "st": "doco_anchor",
+  "si": 282,           // START character index
+  "ei": 326,           // END character index
+  "sm": {"das_a": {"cv": {"op": "insert", "opValue": "kix.xxxxx"}}}
+}
+```
+
+**Key insight:** The internal API uses `si` (start index) and `ei` (end index) - exactly what the public API lacks!
+
+**Blocker:** Authentication (XSRF tokens, cookies) prevents external scripts from calling these endpoints.
+
+**Current approach:** Chrome Extension (Test 7) to run in authenticated page context.
+
 ## Findings Summary
 
 | Approach | Anchored | Account Linkage | Viable? |
@@ -24,12 +45,12 @@ This limitation has been documented since 2016 (Google Issue #36763384) and rema
 | DOCX round-trip | ✅ Full | ❌ Lost | **Yes** |
 | Drive API alone | ❌ None | ✅ Preserved | No |
 | API + UI anchor reuse | ✅ Full | ✅ Preserved | **Limited** |
-| API + DOCX anchor reuse | ⚠️ Partial | ✅ Preserved | No |
-| Browser automation | N/A | N/A | No |
+| Internal API (external) | ✅ Full? | ✅ Preserved? | No (auth blocked) |
+| Chrome Extension | ✅ Full? | ✅ Preserved? | **Testing** |
 
-## Viable Workflows
+## Viable Workflows (So Far)
 
-### Workflow 1: DOCX Round-Trip (Recommended)
+### Workflow 1: DOCX Round-Trip
 For comments at arbitrary positions when account linkage isn't needed.
 
 ```
@@ -47,16 +68,18 @@ Create manual comment → Read anchor via Drive API → Create API comments with
 
 Key script: `apps_script_comments.js`
 
-## Development
-
-- **Python 3.x** with `python-docx` for .docx manipulation
-- **Google Apps Script** with Drive Advanced Service for API testing
-- **Playwright** (attempted, blocked by Google security)
-
 ## Key Files
 
-- `TEST_RESULTS.md` - Detailed test results and conclusions
+- `TEST_RESULTS.md` - Detailed test results (Tests 1-6 documented)
 - `RESEARCH_FINDINGS.md` - Initial research on all approaches
 - `test_docx_precise.py` - DOCX comment insertion with run splitting
 - `apps_script_comments.js` - Drive API comment tools
+- `test_internal_api.py` - Internal API experiment (blocked by auth)
+- `network_capture.har` - Captured network traffic showing internal API format
 - `archive/` - Old test scripts and files
+
+## Development
+
+- **Python 3.x** with `python-docx`, `requests`, `browser-cookie3`
+- **Google Apps Script** with Drive Advanced Service
+- **Chrome Extension** (next test)

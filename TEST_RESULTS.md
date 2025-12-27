@@ -255,6 +255,91 @@ Browser automation is not a viable approach due to security restrictions and tec
 
 ---
 
+## Test 6: Internal API Reverse Engineering (HAR Analysis)
+
+**Date:** December 26, 2025
+**Status:** 🔬 RESEARCH SUCCESS / ⚠️ IMPLEMENTATION BLOCKED
+
+### What We Discovered
+
+By capturing network traffic (HAR file) when manually adding a comment, we reverse-engineered Google Docs' internal API format.
+
+#### The `/save` Endpoint (Creates Anchor)
+```json
+POST https://docs.google.com/document/d/{docId}/save
+
+{
+  "rev": "45",
+  "bundles": [{
+    "commands": [{
+      "ty": "as",
+      "st": "doco_anchor",
+      "si": 282,           // START CHARACTER INDEX
+      "ei": 326,           // END CHARACTER INDEX
+      "sm": {
+        "das_a": {
+          "cv": {
+            "op": "insert",
+            "opIndex": 0,
+            "opValue": "kix.cg51nha9yce6"  // GENERATED ANCHOR
+          }
+        }
+      }
+    }],
+    "sid": "session_id",
+    "reqId": 11
+  }]
+}
+```
+
+#### The `/docos/p/sync` Endpoint (Creates Comment)
+```json
+POST https://docs.google.com/document/d/{docId}/docos/p/sync
+
+[
+  [[
+    "comment_id",
+    [null, null,
+      ["text/html", "Comment text"],
+      ["text/plain", "Comment text"],
+      ["Author Name", null, "profile_pic_url", "user_id", ...],
+      timestamp, timestamp, null,
+      ["text/plain", "Quoted/highlighted text"],
+      null, "comment_id", 1
+    ],
+    timestamp, null, null, null, null,
+    "kix.anchor_id",  // Links to anchor created in /save
+    1
+  ]],
+  timestamp
+]
+```
+
+### Key Finding: Character Index Anchoring
+
+The internal API uses **character indices** (`si` and `ei`) to define anchor positions - exactly what the public API lacks!
+
+- `si` = start index (character position from document start)
+- `ei` = end index
+- The kix anchor is generated client-side and associated with these positions
+
+### Why Implementation Failed
+
+1. **XSRF Token Expiration** - Tokens from HAR file expired quickly
+2. **Cookie Insufficiency** - browser_cookie3 couldn't capture all necessary session data
+3. **403 Forbidden** - Direct requests to fetch fresh tokens were blocked
+
+### Next Step: Chrome Extension
+
+A Chrome Extension running in the authenticated page context should have:
+- Valid XSRF tokens (from the page)
+- Full cookie access
+- Ability to call internal APIs directly
+
+**Status:** Test 7 pending
+
+---
+
 # Final Conclusions
 
 ## Summary of All Approaches Tested
@@ -265,7 +350,9 @@ Browser automation is not a viable approach due to security restrictions and tec
 | Drive API alone | ❌ None | ✅ Preserved | No |
 | API + UI anchor reuse | ✅ Full | ✅ Preserved | **Limited** (same location only) |
 | API + DOCX anchor reuse | ⚠️ Partial | ✅ Preserved | No |
-| Browser automation | N/A | N/A | No (blocked by security) |
+| Browser automation (Playwright) | N/A | N/A | No (blocked by security) |
+| Internal API (external script) | ✅ Full? | ✅ Preserved? | No (auth blocked) |
+| Chrome Extension (Test 7) | ✅ Full? | ✅ Preserved? | **Testing** |
 
 ## Viable Workflows
 
