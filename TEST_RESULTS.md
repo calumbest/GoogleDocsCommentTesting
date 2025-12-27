@@ -203,3 +203,116 @@ This means the workflow is:
 
 ### Screenshot
 Test 3c comment showing full anchoring with account linkage preserved.
+
+---
+
+## Test 4: DOCX → API Hybrid Workflow
+
+**Date:** December 26, 2025
+**Status:** ⚠️ PARTIAL SUCCESS (not fully usable)
+
+### What We Tested
+1. Created comment via python-docx at specific location ("quick brown fox")
+2. Uploaded .docx to Google Docs (comment appears anchored, but "from imported document")
+3. Read the DOCX-generated anchor via Drive API
+4. Created new comment via API using that anchor
+
+### Results
+- ✅ DOCX-imported comment has anchor (`kix.cmt0` format)
+- ✅ API can create comment with that anchor
+- ✅ New comment shows user's Google account
+- ❌ **No yellow highlighting** - only shows in comment panel
+- ❌ Cannot delete DOCX-imported comments via API (permission error)
+
+### Key Finding: Anchor Format Matters
+
+| Anchor Source | Format | Full UI Integration |
+|---------------|--------|---------------------|
+| Manual UI comment | `kix.hkaqsaj0l7p3` | ✅ Yes |
+| DOCX import | `kix.cmt0` | ❌ No (panel only) |
+
+DOCX-generated anchors are "weaker" and don't produce full visual integration when reused.
+
+---
+
+## Test 5: Browser Automation
+
+**Date:** December 26, 2025
+**Status:** ❌ FAILED
+
+### What We Tested
+Attempted to use Playwright to automate the Google Docs UI:
+1. Open document in browser
+2. Use Cmd+F to find text
+3. Use Cmd+Option+M to add comment
+
+### Results
+- ❌ **Google blocks sign-in from automated browsers** (security detection)
+- Even if login worked, canvas-based rendering makes DOM automation unreliable
+
+### Conclusion
+Browser automation is not a viable approach due to security restrictions and technical complexity.
+
+---
+
+# Final Conclusions
+
+## Summary of All Approaches Tested
+
+| Approach | Anchored | Account Linkage | Viable? |
+|----------|----------|-----------------|---------|
+| DOCX round-trip | ✅ Full | ❌ Lost | **Yes** (if account linkage not needed) |
+| Drive API alone | ❌ None | ✅ Preserved | No |
+| API + UI anchor reuse | ✅ Full | ✅ Preserved | **Limited** (same location only) |
+| API + DOCX anchor reuse | ⚠️ Partial | ✅ Preserved | No |
+| Browser automation | N/A | N/A | No (blocked by security) |
+
+## Viable Workflows
+
+### Workflow 1: DOCX Round-Trip (Recommended)
+**Use when:** You need comments at arbitrary positions and don't need account linkage.
+
+```
+Google Doc → Export .docx → Add comments with python-docx → Re-upload → Convert to Google Doc
+```
+
+**Pros:**
+- Precise positioning at any text location
+- Preserves existing comments
+- Works reliably
+
+**Cons:**
+- All comments show "From imported document"
+- No Google account linkage
+- Requires export/import cycle
+
+### Workflow 2: API Anchor Reuse
+**Use when:** You need multiple comments at the SAME location with account linkage.
+
+```
+Create manual comment → Read anchor via API → Create additional API comments with same anchor
+```
+
+**Pros:**
+- Preserves Google account linkage
+- Full UI integration (yellow highlighting)
+
+**Cons:**
+- Only works for locations with existing manual comments
+- Cannot create anchors at arbitrary positions
+
+## The Fundamental Limitation
+
+Google's `kix.xxxxx` anchor format is proprietary and internally generated. There is no public API to:
+1. Create new anchors at arbitrary positions
+2. Translate character positions to kix anchors
+3. Generate anchors that produce full UI integration
+
+This limitation has been documented since 2016 (Google Issue #36763384) and remains unresolved.
+
+## Recommendations
+
+1. **For programmatic commenting at arbitrary positions:** Use DOCX round-trip
+2. **For preserving account linkage:** Create manual comments first, then add replies via API
+3. **For exporting comments to Markdown:** Use DOCX export and parse comment positions from XML
+4. **For Google to fix this:** Star issue #36763384 on Google Issue Tracker

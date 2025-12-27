@@ -4,61 +4,59 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Google Commenter is an exploration project to find a workable solution for programmatically inserting comments with specific text locations into Google Docs.
+Google Commenter was an exploration project to find a workable solution for programmatically inserting comments with specific text locations into Google Docs.
 
-### The Core Problem
+**Status:** Research complete. See [TEST_RESULTS.md](./TEST_RESULTS.md) for full findings.
 
-Google's Comments API returns comment locations as uninterpretable strings (the `quotedFileContent.value` or anchor fields). There's no documented way to:
-1. Parse these location identifiers to understand where a comment is positioned
-2. Construct valid location identifiers to post comments at specific positions
+## The Core Problem
 
-This blocks use cases like:
-- Exporting Google Docs to Markdown while preserving comment thread positions
-- Programmatically posting comments anchored to specific text ranges
+Google's `kix.xxxxx` anchor format is proprietary and internally generated. There is no public API to:
+1. Create new anchors at arbitrary text positions
+2. Translate character positions to kix anchors
+3. Generate anchors that produce full UI integration
 
-### Known Information
+This limitation has been documented since 2016 (Google Issue #36763384) and remains unresolved.
 
-- Exporting GDocs to .docx retains comments with positions (potential XML structure to investigate)
-- Comments can be posted via API but without location anchoring
-- Last checked: Feb 2025. APIs may have been updated since then.
+## Findings Summary
 
-## Project Approach
+| Approach | Anchored | Account Linkage | Viable? |
+|----------|----------|-----------------|---------|
+| DOCX round-trip | ✅ Full | ❌ Lost | **Yes** |
+| Drive API alone | ❌ None | ✅ Preserved | No |
+| API + UI anchor reuse | ✅ Full | ✅ Preserved | **Limited** |
+| API + DOCX anchor reuse | ⚠️ Partial | ✅ Preserved | No |
+| Browser automation | N/A | N/A | No |
 
-This is an **exploration/research project**, not a product build. Goals:
-1. Identify the full list of potential approaches
-2. Test each approach with short feedback loops
-3. Find a workable solution (if one exists)
+## Viable Workflows
 
-### Constraints
+### Workflow 1: DOCX Round-Trip (Recommended)
+For comments at arbitrary positions when account linkage isn't needed.
 
-- No building Google Docs alternatives
-- No janky workarounds (bookmarks, etc.) without explicit user approval
-- Bite-sized code experiments
-- Manual GUI testing may be required - always specify exactly what data/screenshots are needed before requesting manual tests
+```
+Google Doc → Export .docx → Add comments with python-docx → Re-upload
+```
 
-## Testing Plan
+Key script: `test_docx_precise.py`
 
-See [RESEARCH_FINDINGS.md](./RESEARCH_FINDINGS.md) for comprehensive research on all approaches.
+### Workflow 2: API Anchor Reuse
+For multiple comments at the SAME location with account linkage preserved.
 
-### Test Priority Order
+```
+Create manual comment → Read anchor via Drive API → Create API comments with same anchor
+```
 
-1. **Test 1: DOCX Round-Trip** (HIGH likelihood)
-   - Export GDoc as .docx → add comments with python-docx → re-import
-   - Script: `test_docx_roundtrip.py`
-
-2. **Test 2: Apps Script addComment()** (MEDIUM likelihood)
-   - Test if Range-based comments actually anchor in UI
-
-3. **Test 3: Track Changes → Suggestions** (MEDIUM-HIGH likelihood)
-   - Create .docx with track changes → import → verify suggestions are anchored
-
-4. **Test 4: Named Ranges** (MEDIUM likelihood)
-   - Semi-automated workflow with position markers
-
-### Test Results
-
-Results will be documented in `TEST_RESULTS.md` as we complete each test.
+Key script: `apps_script_comments.js`
 
 ## Development
 
-Python 3.x with python-docx for .docx manipulation experiments.
+- **Python 3.x** with `python-docx` for .docx manipulation
+- **Google Apps Script** with Drive Advanced Service for API testing
+- **Playwright** (attempted, blocked by Google security)
+
+## Key Files
+
+- `TEST_RESULTS.md` - Detailed test results and conclusions
+- `RESEARCH_FINDINGS.md` - Initial research on all approaches
+- `test_docx_precise.py` - DOCX comment insertion with run splitting
+- `apps_script_comments.js` - Drive API comment tools
+- `archive/` - Old test scripts and files
