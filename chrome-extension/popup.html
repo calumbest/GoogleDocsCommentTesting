@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      width: 350px;
+      padding: 15px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+    }
+    h2 {
+      margin: 0 0 15px 0;
+      font-size: 16px;
+      color: #1a73e8;
+    }
+    .section {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+      color: #5f6368;
+    }
+    input, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #1a73e8;
+    }
+    textarea {
+      height: 60px;
+      resize: vertical;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1557b0;
+    }
+    button:disabled {
+      background: #dadce0;
+      cursor: not-allowed;
+    }
+    .info {
+      background: #e8f0fe;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      font-size: 12px;
+      color: #174ea6;
+    }
+    .status {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      display: none;
+    }
+    .status.success {
+      background: #e6f4ea;
+      color: #137333;
+      display: block;
+    }
+    .status.error {
+      background: #fce8e6;
+      color: #c5221f;
+      display: block;
+    }
+    .status.loading {
+      background: #fef7e0;
+      color: #b06000;
+      display: block;
+    }
+    .doc-info {
+      background: #f8f9fa;
+      padding: 8px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      font-size: 11px;
+      color: #5f6368;
+    }
+    .doc-info code {
+      background: #e8eaed;
+      padding: 2px 4px;
+      border-radius: 2px;
+    }
+    .buttons {
+      display: flex;
+      gap: 8px;
+    }
+    .buttons button {
+      flex: 1;
+    }
+    .secondary {
+      background: #5f6368;
+    }
+    .secondary:hover {
+      background: #3c4043;
+    }
+    pre {
+      background: #f8f9fa;
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      overflow: auto;
+      max-height: 150px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <h2>Google Docs Comment Injector</h2>
+
+  <div class="info">
+    Test 7: Inject comments via internal API using character indices.
+  </div>
+
+  <div class="doc-info" id="docInfo">
+    Loading document info...
+  </div>
+
+  <div class="section">
+    <label for="targetText">Target Text (to highlight)</label>
+    <input type="text" id="targetText" placeholder="e.g., quick brown fox">
+  </div>
+
+  <div class="section">
+    <label for="commentText">Comment Text</label>
+    <textarea id="commentText" placeholder="Your comment here..."></textarea>
+  </div>
+
+  <div class="buttons">
+    <button id="getTextBtn" class="secondary">Get Doc Text</button>
+    <button id="addCommentBtn">Add Comment</button>
+  </div>
+
+  <div class="status" id="status"></div>
+
+  <div id="output"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

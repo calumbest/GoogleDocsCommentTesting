@@ -38,6 +38,19 @@ By reverse-engineering network traffic (HAR analysis), we discovered Google Docs
 
 **Current approach:** Chrome Extension (Test 7) to run in authenticated page context.
 
+## Test 7: Chrome Extension (In Progress)
+
+A Chrome Extension was built to call the internal API from within the authenticated page context.
+
+**Current blocker:** Document text extraction. Google Docs renders content on a **canvas element**, not in the DOM. Our DOM-based extraction methods only find UI elements (comment sidebar, Gemini notes) instead of the actual document text.
+
+**Next steps to try:**
+1. Inject script into page context to access Google's internal document model (JS variables)
+2. Use clipboard/selection API to extract text
+3. Find where Google stores the document data in window objects
+
+**Extension location:** `chrome-extension/`
+
 ## Findings Summary
 
 | Approach | Anchored | Account Linkage | Viable? |
@@ -75,11 +88,11 @@ Key script: `apps_script_comments.js`
 - `test_docx_precise.py` - DOCX comment insertion with run splitting
 - `apps_script_comments.js` - Drive API comment tools
 - `test_internal_api.py` - Internal API experiment (blocked by auth)
-- `network_capture.har` - Captured network traffic showing internal API format
+- `chrome-extension/` - Chrome Extension for Test 7 (in progress)
 - `archive/` - Old test scripts and files
 
 ## Development
 
-- **Python 3.x** with `python-docx`, `requests`, `browser-cookie3`
+- **Python 3.x** with `python-docx`, `requests`
 - **Google Apps Script** with Drive Advanced Service
-- **Chrome Extension** (next test)
+- **Chrome Extension** (Manifest V3)
