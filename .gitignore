@@ -1,0 +1,28 @@
+# Sensitive files
+*.har
+network_capture.har
+
+# Session/auth data
+*.cookies
+*.session
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+venv/
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Temp files
+*.tmp
+*.bak
