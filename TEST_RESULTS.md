@@ -153,5 +153,53 @@ When a Google Doc is exported to .docx and re-imported:
 ### Conclusion
 The `kix.xxxxx` anchor format is proprietary and generated internally by Google Docs. There is no documented way to construct valid anchors via API. This approach **cannot** create anchored comments.
 
-### Implication for Account Linkage
-Even if we could anchor comments via Drive API, the comments would be linked to the service account or authenticated user running the script - not arbitrary users. So this approach wouldn't solve the account linkage limitation of the DOCX method anyway.
+---
+
+## Test 3b: Pass kix Anchor Directly
+
+**Date:** December 26, 2025
+**Status:** ⚠️ PARTIAL SUCCESS
+
+### What We Tested
+Passed a captured kix anchor (`kix.hkaqsaj0l7p3`) directly to `Drive.Comments.create()`
+
+### Results
+- ✅ Comment created with anchor preserved in API response
+- ✅ Comment panel shows "Tab 1" (not "Original content deleted")
+- ✅ Clicking comment navigates to correct text
+- ❌ No yellow highlight in document body (partial anchoring)
+
+---
+
+## Test 3c: Reuse Existing Anchor
+
+**Date:** December 26, 2025
+**Status:** ✅ **BREAKTHROUGH SUCCESS**
+
+### What We Tested
+1. Created a manual comment in Google Docs UI (anchored to "ipsum")
+2. Read the comment's kix anchor via Drive API
+3. Created a NEW comment via API using the SAME anchor
+
+### Results
+- ✅ **Full yellow highlighting** on "ipsum" in document body
+- ✅ **Google account linkage preserved** (shows user profile, clickable name)
+- ✅ Comment appears in normal document interface
+- ✅ Anchor returned in API response
+
+### Key Finding
+**The Drive API CAN create fully anchored comments if you reuse a valid existing kix anchor!**
+
+This means the workflow is:
+1. Create a "template" comment manually (or via DOCX import) to generate a kix anchor
+2. Read the anchor via `Drive.Comments.list()`
+3. Create new comments via `Drive.Comments.create()` with that anchor
+4. New comments inherit full anchoring AND preserve Google account linkage
+
+### Observations
+- When the original "owner" comment is deleted, other comments using that anchor may show "original content deleted"
+- Only one comment per kix anchor appears in the main document interface at a time
+- More testing needed to understand anchor lifecycle
+
+### Screenshot
+Test 3c comment showing full anchoring with account linkage preserved.
